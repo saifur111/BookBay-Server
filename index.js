@@ -18,6 +18,7 @@ async function run() {
         await client.connect();
         const database = client.db('bookDeliveryDB');
         const bookinfoCollection = database.collection('productinfo');
+        const orderCollection=database.collection('orders');
 
         // GET API
         app.get('/viewallproduct', async (req, res) => {
@@ -73,6 +74,18 @@ async function run() {
             const result = await bookinfoCollection.deleteOne(query);
             res.json(result);
         })
+
+        //Order Part
+        
+        //post api(order)
+        app.post('/cart',async(req,res)=>{
+            const order=req.body;
+            console.log('hit the post api',order)
+            const result=await orderCollection.insertOne(order);
+            console.log(result)
+            res.json(result)
+
+   });
         console.log("Connected successfully to server");
     }
     finally {
