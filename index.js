@@ -3,6 +3,7 @@ const app = express();
 const { MongoClient } = require('mongodb');
 const cors = require('cors');
 const ObjectId = require('mongodb').ObjectId;
+
 require('dotenv').config();
 const port = process.env.PORT||5000;
 
@@ -16,41 +17,62 @@ async function run() {
     try {
         await client.connect();
         const database = client.db('bookDeliveryDB');
-        const bookinfoCollection = database.collection('bookinfo');
+        const bookinfoCollection = database.collection('productinfo');
 
-        // // GET API
-        // app.get('/', async (req, res) => {
-        //     const cursor = bookinfoCollection.find({});
-        //     const services = await cursor.toArray();
-        //     res.send(services);
-        // });
+        // GET API
+        app.get('/viewallproduct', async (req, res) => {
+            const cursor = bookinfoCollection.find({});
+            const dataList = await cursor.toArray();
+            res.send(dataList);
+        });
 
-        // // GET Single Service
-        // app.get('/services/:id', async (req, res) => {
-        //     const id = req.params.id;
-        //     console.log('getting specific service', id);
-        //     const query = { _id: ObjectId(id) };
-        //     const service = await bookinfoCollection.findOne(query);
-        //     res.json(service);
-        // })
+        // GET Single Service
+        app.get('/products/:id', async(req, res) => {
+            const id = req.params.id;
+            console.log('getting single product id', id);
+            const query = { _id: ObjectId(id) };
+            const product = await bookinfoCollection.findOne(query);
+            res.json(product);
+        })
 
-        // // POST API
-        // app.post('/services', async (req, res) => {
-        //     const service = req.body;
-        //     console.log('hit the post api', service);
+        // POST API
+        app.post('/addproduct', async (req, res) => {
+            const dataStore = req.body;
+            console.log('hit the post api', dataStore);
 
-        //     const result = await bookinfoCollection.insertOne(service);
-        //     console.log(result);
-        //     res.json(result)
-        // });
+            const result = await bookinfoCollection.insertOne(dataStore);
+            console.log(result);
+            res.json(result)
+        });
+        //PUT API
+        app.put('/products/:id', async(req, res) => {
+            const id = req.params.id;
+            const updateProduct = req.body;
+            const options ={upsert:true};
+            const filter = { _id: ObjectId(id) };
+            const updateDoc ={
+                $set:{
+                    booktitle : updateProduct.booktitle,
+                    bookprice : updateProduct.bookprice, 
+                    discrioption : updateProduct.discrioption, 
+                    image : updateProduct.image, 
+                    rateing : updateProduct.rateing 
+                },
+            };
+            const result=await bookinfoCollection.updateOne(filter, updateDoc,options);
+            console.log('Updating single product id', id);
+            res.json(result);
 
-        // // DELETE API
-        // app.delete('/services/:id', async (req, res) => {
-        //     const id = req.params.id;
-        //     const query = { _id: ObjectId(id) };
-        //     const result = await bookinfoCollection.deleteOne(query);
-        //     res.json(result);
-        // })
+        });
+
+
+        // DELETE API
+        app.delete('/viewallproduct/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const result = await bookinfoCollection.deleteOne(query);
+            res.json(result);
+        })
         console.log("Connected successfully to server");
     }
     finally {
