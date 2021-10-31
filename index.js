@@ -19,7 +19,8 @@ async function run() {
         const database = client.db('bookDeliveryDB');
         const bookinfoCollection = database.collection('productinfo');
         const orderCollection=database.collection('orders');
-
+        // Admin
+        
         // GET API
         app.get('/viewallproduct', async (req, res) => {
             const cursor = bookinfoCollection.find({});
@@ -76,7 +77,7 @@ async function run() {
         })
 
         //Order Part
-        
+
         //post api(order)
         app.post('/cart',async(req,res)=>{
             const order=req.body;
@@ -85,7 +86,30 @@ async function run() {
             console.log(result)
             res.json(result)
 
-   });
+        });
+        // GET API
+        app.get('/checkout', async (req, res) => {
+            const cursor = orderCollection.find({});
+            const dataList = await cursor.toArray();
+            res.send(dataList);
+        });
+        // update api
+        app.get('/orders/:id',async(req,res)=>{
+        const id= req.params.id;
+        const query ={_id:ObjectId(id)};
+        const newQuery={$set:{status:'approved'}}
+        const result = await orderCollection.updateOne(query, newQuery);
+        console.log('load user with id :',id)
+        res.json(result)
+        })
+         //delete api(order)
+        app.delete('/orders/:id',async(req,res)=>{
+        const id = req.params.id;
+        const query={_id: ObjectId(id)};
+        const result =await orderCollection.deleteOne(query);
+        console.log("deleting user with id",result);
+        res.json(result)
+    })
         console.log("Connected successfully to server");
     }
     finally {
